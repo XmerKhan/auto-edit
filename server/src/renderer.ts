@@ -12,7 +12,7 @@ let bundlePromise: Promise<string> | null = null;
 
 async function getBundle(): Promise<string> {
   if (!bundlePromise) {
-    const entryPoint = join(__dirname, '..', 'remotion', 'Root.ts');
+    const entryPoint = join(__dirname, '..', 'remotion', 'Root.tsx');
     bundlePromise = bundle({
       entryPoint,
       onProgress: (progress) => {
@@ -48,10 +48,10 @@ export async function startRender(
 
       const videoBitrate =
         settings.exportResolution === '4k'
-          ? 20_000_000
+          ? '20M'
           : settings.exportResolution === '1080p'
-            ? 8_000_000
-            : 4_000_000;
+            ? '8M'
+            : '4M';
 
       const outputPath = join(getOutputDir(), `${jobId}.mp4`);
 
@@ -63,7 +63,7 @@ export async function startRender(
         codec: 'h264',
         outputLocation: outputPath,
         audioCodec: 'aac',
-        audioBitrate: 128_000,
+        audioBitrate: '128k',
         videoBitrate,
         onProgress: ({ progress }) => {
           const pct = Math.round(progress * 100);
