@@ -21,14 +21,14 @@ RUN apt-get update && apt install -y \
 WORKDIR /app
 
 # Copy package files and install dependencies
-COPY server/package.json server/package-lock.json* ./
+COPY package.json package-lock.json* ./
 RUN npm install
-
+ 
 # Install Chrome for Remotion
 RUN npx remotion browser ensure
-
+ 
 # Copy source code
-COPY server/ ./
+COPY . ./
 
 # Build TypeScript
 RUN npm run build
