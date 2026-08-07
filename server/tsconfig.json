@@ -14,11 +14,11 @@
     "noEmit": false,
     "declaration": false,
     "outDir": "dist",
-    "rootDir": ".",
+    "rootDir": "src",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./remotion/*"]
     }
   },
-  "include": ["src", "remotion"]
+  "include": ["src"]
 }
