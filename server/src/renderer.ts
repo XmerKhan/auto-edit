@@ -3,12 +3,40 @@ import { renderMedia, selectComposition } from '@remotion/renderer';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import type { TimelineData, EditSettings } from '../remotion/types.js';
-import { createJob, updateJob, getJob, getOutputDir } from './jobs.js';
+import { createJob, updateJob, getJob, getOutputDir, getUploadDir } from './jobs.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 let bundlePromise: Promise<string> | null = null;
+
+// Converts a public "/api/uploads/<filename>" URL (which forces the render's
+// headless browser to make a slow network round-trip back to this same
+// server) into a local absolute file path, since the render process and the
+// uploaded files live on the same disk.
+function toLocalPath(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const marker = '/api/uploads/';
+  const idx = url.indexOf(marker);
+  if (idx === -1) return url; // not one of our upload URLs, leave as-is
+  const filename = url.slice(idx + marker.length);
+  return join(getUploadDir(), filename);
+}
+
+function resolveTimelineToLocalPaths(timeline: TimelineData): TimelineData {
+  return {
+    ...timeline,
+    voiceoverUrl: toLocalPath(timeline.voiceoverUrl),
+    musicUrl: toLocalPath(timeline.musicUrl),
+    scenes: timeline.scenes.map((scene) => ({
+      ...scene,
+      media: {
+        ...scene.media,
+        url: toLocalPath(scene.media.url) ?? scene.media.url,
+      },
+    })),
+  };
+}
 
 async function getBundle(): Promise<string> {
   if (!bundlePromise) {
@@ -31,6 +59,7 @@ export async function startRender(
 ): Promise<string> {
   const job = createJob();
   const jobId = job.id;
+  const localTimeline = resolveTimelineToLocalPaths(timeline);
 
   (async () => {
     try {
@@ -43,7 +72,7 @@ export async function startRender(
       const composition = await selectComposition({
         serveUrl,
         id: 'autocut-video',
-        inputProps: { timeline, settings },
+        inputProps: { timeline: localTimeline, settings },
       });
 
       const videoBitrate =
@@ -65,6 +94,7 @@ export async function startRender(
         audioCodec: 'aac',
         audioBitrate: '128k',
         videoBitrate,
+        timeoutInMilliseconds: 120000,
         onProgress: ({ progress }) => {
           const pct = Math.round(progress * 100);
           updateJob(jobId, {
