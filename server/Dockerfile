@@ -23,10 +23,10 @@ WORKDIR /app
 # Copy package files and install dependencies
 COPY package.json package-lock.json* ./
 RUN npm install
- 
+
 # Install Chrome for Remotion
 RUN npx remotion browser ensure
- 
+
 # Copy source code
 COPY . ./
 
@@ -38,4 +38,4 @@ RUN mkdir -p uploads output
 
 EXPOSE 3001
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/src/index.js"]
