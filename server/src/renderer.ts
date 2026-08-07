@@ -12,7 +12,7 @@ let bundlePromise: Promise<string> | null = null;
 
 async function getBundle(): Promise<string> {
   if (!bundlePromise) {
-    const entryPoint = join(__dirname, '..', 'remotion', 'Root.tsx');
+    const entryPoint = join(__dirname, '..', '..', 'remotion', 'Root.tsx');
     bundlePromise = bundle({
       entryPoint,
       onProgress: (progress) => {
