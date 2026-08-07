@@ -12,15 +12,18 @@ let bundlePromise: Promise<string> | null = null;
 
 // Converts a public "/api/uploads/<filename>" URL (which forces the render's
 // headless browser to make a slow network round-trip back to this same
-// server) into a local absolute file path, since the render process and the
-// uploaded files live on the same disk.
+// server) into a local "file://" URI, since the render process and the
+// uploaded files live on the same disk. Remotion's <Img>/<Video>/<Audio>
+// treat a bare "/absolute/path" as relative to their own internal dev
+// server, so a proper file:// URI is required to reference real local files.
 function toLocalPath(url: string | null | undefined): string | null {
   if (!url) return null;
   const marker = '/api/uploads/';
   const idx = url.indexOf(marker);
   if (idx === -1) return url; // not one of our upload URLs, leave as-is
   const filename = url.slice(idx + marker.length);
-  return join(getUploadDir(), filename);
+  const absolutePath = join(getUploadDir(), filename);
+  return `file://${absolutePath}`;
 }
 
 function resolveTimelineToLocalPaths(timeline: TimelineData): TimelineData {
